@@ -12,7 +12,7 @@ class EnsureDatabaseExistsMiddleware(MiddlewareMixin):
         db_port = config('DB_PORT', default='5432')
         db_user = config('DB_USER', default='postgres')
         db_password = config('DB_PASSWORD', default='')
-        db_name = config('TARGET_DB_NAME', default='python_learning')
+        db_name = config('TARGET_DB_NAME', default='team_management')
         try:
             # Try connecting to the target DB
             psycopg.connect(
