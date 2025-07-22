@@ -64,7 +64,7 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     )
     def delete(self, request, *args, **kwargs):
         # Only admins can delete users
-        if not request.user.has_role('admin'):
+        if not request.user.has_role(Role.ADMIN):
             return Response({
                 'error': 'Only admins can delete users'
             }, status=status.HTTP_403_FORBIDDEN)
