@@ -93,8 +93,8 @@ class TestUserModel:
         )
         assert superuser.is_superuser is True
         assert superuser.is_staff is True
-        # By default, superuser gets EMPLOYEE role unless explicitly set
-        assert superuser.role == Role.EMPLOYEE
+        # By default, superuser gets ADMIN role unless explicitly set
+        assert superuser.role == Role.ADMIN
         
         # Test superuser with admin role explicitly set
         admin_superuser = User.objects.create_superuser(
