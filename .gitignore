@@ -56,6 +56,24 @@ coverage.xml
 *.pot
 
 # Django stuff:
+# Environment variables (sensitive data)
+.env
+.env.local
+.env.production
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Django
 *.log
 local_settings.py
 db.sqlite3
