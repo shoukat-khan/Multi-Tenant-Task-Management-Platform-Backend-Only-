@@ -1,15 +1,14 @@
 """
-Test cases for custom permissions and authen    def test_manager_user_denied_permission(self):
-        view = MockView()
-        view.permission_classes = [IsAdminRole]
-        
-        request = self.factory.get('/test/')
-        request.user = self.manager_user
-        
-        permission = IsAdminRole()
-        has_permission = permission.has_permission(request, view)
-        
-        assert has_permission is False"""
+This module contains test cases for custom permissions and authentication.
+
+It includes tests for the following permission classes:
+- IsAdminRole
+- IsManagerRole
+- IsEmployeeRole
+
+The tests ensure that users with different roles and authentication states
+are granted or denied access as expected.
+"""
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIRequestFactory, force_authenticate
