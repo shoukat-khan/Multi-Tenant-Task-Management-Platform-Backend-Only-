@@ -68,6 +68,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     Custom login view that returns user info along with tokens.
     """
     serializer_class = CustomTokenObtainPairSerializer
+    permission_classes = [permissions.AllowAny]
     
     @extend_schema(
         summary="User Login",
@@ -101,6 +102,13 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             user.profile.save(update_fields=['last_login_ip'])
         
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+
+class CustomTokenRefreshView(TokenRefreshView):
+    """
+    Custom token refresh view that allows unauthenticated access.
+    """
+    permission_classes = [permissions.AllowAny]
 
 
 class LogoutView(APIView):
