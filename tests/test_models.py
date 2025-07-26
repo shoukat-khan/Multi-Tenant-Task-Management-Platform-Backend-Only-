@@ -5,7 +5,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from services.users.models import UserProfile, Role
+from Services.users.models import UserProfile, Role
 from tests.factories import UserFactory, UserProfileFactory, AdminUserFactory, ManagerUserFactory
 
 User = get_user_model()

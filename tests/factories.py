@@ -4,7 +4,7 @@ Test factories for creating test data using Factory Boy.
 import factory
 from factory import fuzzy
 from django.contrib.auth import get_user_model
-from services.users.models import UserProfile, Role
+from Services.users.models import UserProfile, Role
 
 User = get_user_model()
 

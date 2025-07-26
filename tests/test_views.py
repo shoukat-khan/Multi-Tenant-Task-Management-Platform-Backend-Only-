@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
-from services.users.models import UserProfile, Role
+from Services.users.models import UserProfile, Role
 from tests.factories import UserFactory, UserProfileFactory, AdminUserFactory, ManagerUserFactory
 
 User = get_user_model()
@@ -242,28 +242,25 @@ class TestUserProfileView:
         response = self.client.get(self.profile_url)
         
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['first_name'] == self.profile.first_name
-        assert response.data['last_name'] == self.profile.last_name
+        # Test fields that actually exist on UserProfile model
         assert response.data['phone_number'] == self.profile.phone_number
     
     def test_update_user_profile(self):
         """Test updating user profile."""
         update_data = {
-            'first_name': 'Updated',
-            'last_name': 'Name',
-            'phone_number': '+9999999999'
+            'phone_number': '+9999999999',
+            'address': 'Updated Address'
         }
         
         response = self.client.patch(self.profile_url, update_data, format='json')
         
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['first_name'] == 'Updated'
-        assert response.data['last_name'] == 'Name'
         assert response.data['phone_number'] == '+9999999999'
+        assert response.data['address'] == 'Updated Address'
         
         # Verify database was updated
         self.profile.refresh_from_db()
-        assert self.profile.first_name == 'Updated'
+        assert self.profile.phone_number == '+9999999999'
     
     def test_profile_access_without_authentication(self):
         """Test accessing profile without authentication."""
@@ -338,7 +335,7 @@ class TestRoleBasedPermissions:
     
     def test_role_hierarchy(self):
         """Test role hierarchy levels."""
-        from services.authentication.serializers import UserRegistrationSerializer
+        from Services.authentication.serializers import UserRegistrationSerializer
         
         serializer = UserRegistrationSerializer()
         

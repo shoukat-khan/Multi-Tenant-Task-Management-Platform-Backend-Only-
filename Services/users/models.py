@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 from django.core.validators import MinLengthValidator
 
@@ -10,6 +10,53 @@ class Role(models.TextChoices):
     ADMIN = "admin", "Admin"
     MANAGER = "manager", "Manager"
     EMPLOYEE = "employee", "Employee"
+
+
+class CustomUserManager(UserManager):
+    """
+    Custom user manager to handle superuser creation with proper role assignment.
+    """
+    
+    def create_superuser(self, username_or_email=None, email=None, password=None, **extra_fields):
+        """
+        Create and return a superuser with admin role.
+        Supports both old (username, email, password) and new (email, password) patterns.
+        """
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('role', Role.ADMIN)  # Set admin role for superusers
+        
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+        
+        # Handle both calling patterns
+        if email is None:
+            email = username_or_email
+        
+        if not email:
+            raise ValueError('Email is required for superuser creation')
+        
+        # Generate username from email or use provided username in extra_fields
+        username = extra_fields.get('username')
+        if not username:
+            if username_or_email and '@' not in username_or_email:
+                # First argument was username
+                username = username_or_email
+            else:
+                # Generate username from email
+                username = email.split('@')[0]
+                counter = 1
+                original_username = username
+                while self.filter(username=username).exists():
+                    username = f"{original_username}_{counter}"
+                    counter += 1
+        
+        # Clean up extra_fields
+        extra_fields.pop('username', None)
+        
+        return self.create_user(username, email, password, **extra_fields)
 
 
 class User(AbstractUser):
@@ -27,6 +74,9 @@ class User(AbstractUser):
     # Use email as the username field
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
+    
+    # Use custom manager
+    objects = CustomUserManager()
     
     def has_role(self, role_name):
         """Check if user has a specific role."""
