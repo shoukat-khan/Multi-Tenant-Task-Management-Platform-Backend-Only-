@@ -336,7 +336,6 @@ class TestAccountSecurity:
         assert employee.role == Role.EMPLOYEE
         assert manager.role == Role.MANAGER
         assert admin.role == Role.ADMIN
-        assert admin.role == Role.ADMIN
         
         # Test role hierarchy
         assert employee.has_role(Role.EMPLOYEE) is True
