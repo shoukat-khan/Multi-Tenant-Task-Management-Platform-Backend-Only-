@@ -172,7 +172,7 @@ class TestCustomTokenObtainPairSerializer:
         
         serializer = CustomTokenObtainPairSerializer(data=data)
         # JWT serializers raise AuthenticationFailed exception for invalid credentials
-        with pytest.raises(Exception):
+        with pytest.raises(AuthenticationFailed):
             serializer.is_valid(raise_exception=True)
     
     def test_inactive_user_login(self):
