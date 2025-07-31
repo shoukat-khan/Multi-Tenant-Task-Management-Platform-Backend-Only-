@@ -2,7 +2,7 @@
 Custom permission classes for role-based access control.
 """
 from rest_framework import permissions
-from services.users.models import Role
+from Services.users.models import Role
 
 
 

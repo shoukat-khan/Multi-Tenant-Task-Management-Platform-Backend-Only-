@@ -46,14 +46,21 @@ class UserRegistrationView(generics.CreateAPIView):
             # Generate tokens for immediate login
             refresh = RefreshToken.for_user(user)
             
+            # Get profile information
+            profile_data = {}
+            if hasattr(user, 'profile'):
+                profile_serializer = UserProfileSerializer(user.profile)
+                profile_data = profile_serializer.data
+            
             return Response({
                 'message': 'User registered successfully',
                 'user': {
                     'id': user.id,
                     'email': user.email,
                     'full_name': user.get_full_name(),
-                    'role': user.get_role_display()
+                    'role': user.role  # Return role value instead of display name
                 },
+                'profile': profile_data,
                 'tokens': {
                     'access': str(refresh.access_token),
                     'refresh': str(refresh),
