@@ -125,7 +125,20 @@ class TaskDetailSerializer(serializers.ModelSerializer):
         return obj.attachments.count()
     
     def validate_assigned_to_id(self, value):
-        """Validate that assigned user is a team member."""
+        """
+        Validate that assigned user is a team member.
+        Also restrict employees from assigning tasks to others.
+        """
+        request_user = self.context['request'].user
+        
+        # Employees cannot assign tasks to others (only managers and admins can)
+        if request_user.has_role('employee') and value:
+            current_assignee = self.instance.assigned_to if self.instance else None
+            if value != request_user and value != current_assignee:
+                raise serializers.ValidationError(
+                    "Employees cannot assign tasks to other users."
+                )
+        
         if value:
             # Get the team from context or instance
             team = None
@@ -179,7 +192,18 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate_assigned_to_id(self, value):
-        """Validate that assigned user is a team member."""
+        """
+        Validate that assigned user is a team member.
+        Also restrict employees from assigning tasks to others.
+        """
+        request_user = self.context['request'].user
+        
+        # Employees cannot assign tasks to others (only managers and admins can)
+        if request_user.has_role('employee') and value and value != request_user:
+            raise serializers.ValidationError(
+                "Employees cannot assign tasks to other users."
+            )
+        
         if value:
             # Get the team from context
             team_id = self.initial_data.get('team_id')
