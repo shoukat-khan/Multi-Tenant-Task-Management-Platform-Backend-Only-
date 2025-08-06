@@ -118,7 +118,7 @@ class TaskFilter(django_filters.FilterSet):
                 due_date__lt=now,
                 status__in=['todo', 'in_progress', 'review']
             )
-        elif value is False:
+        elif not value:
             from django.utils import timezone
             now = timezone.now()
             return queryset.exclude(
