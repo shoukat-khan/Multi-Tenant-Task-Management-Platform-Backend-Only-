@@ -1,12 +1,14 @@
-from rest_framework import generics, status, permissions
+from rest_framework import generics, status, permissions, filters
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from Services.users.permissions import IsManagerUser, IsAdminUser, IsOwnerOrManagerOrAdmin
 from Services.teams.models import Team
 from .models import Project
+from .filters import ProjectFilter
 from .serializers import (
     ProjectSerializer, ProjectDetailSerializer, ProjectCreateSerializer,
     ProjectStatusUpdateSerializer
@@ -17,26 +19,34 @@ class ProjectListView(generics.ListCreateAPIView):
     """
     List all projects or create a new project.
     Only managers and admins can create projects.
+    Supports filtering by team, owner, status and search.
     """
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = ProjectFilter
+    search_fields = ['name', 'description', 'team__name', 'manager__email']
+    ordering_fields = ['created_at', 'updated_at', 'start_date', 'end_date', 'priority', 'status']
+    ordering = ['-created_at']
     
     def get_queryset(self):
-        """Filter projects based on user role and permissions."""
+        """Filter projects based on user role and team membership permissions."""
         user = self.request.user
         
         # Admin can see all projects
         if user.has_role('admin'):
-            return Project.objects.all()
+            return Project.objects.select_related('team', 'manager', 'created_by').all()
         
         # Manager can see projects they manage and projects of teams they manage
         if user.has_role('manager'):
-            return Project.objects.filter(
+            return Project.objects.select_related('team', 'manager', 'created_by').filter(
                 Q(manager=user) | Q(team__manager=user) | Q(team__members=user)
             ).distinct()
         
         # Employee can only see projects of teams they're members of
-        return Project.objects.filter(team__members=user)
+        return Project.objects.select_related('team', 'manager', 'created_by').filter(
+            team__members=user
+        )
     
     def get_serializer_class(self):
         """Use different serializer for creation."""
@@ -52,7 +62,7 @@ class ProjectListView(generics.ListCreateAPIView):
     
     @extend_schema(
         summary="List Projects",
-        description="Get list of projects based on user permissions",
+        description="Get list of projects based on user permissions. Supports filtering by team, owner, status and search.",
         responses={200: ProjectSerializer(many=True)}
     )
     def get(self, request, *args, **kwargs):
@@ -64,10 +74,38 @@ class ProjectListView(generics.ListCreateAPIView):
         responses={
             201: ProjectDetailSerializer,
             400: OpenApiResponse(description="Invalid input data"),
+            403: OpenApiResponse(description="Permission denied"),
         }
     )
     def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+        """
+        Create a new project with proper team validation.
+        """
+        # Check permissions first
+        if not (request.user.has_role('manager') or request.user.has_role('admin')):
+            return Response({
+                'error': 'Only managers and admins can create projects'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            team = serializer.validated_data.get('team')
+            
+            # Ensure the user can create projects for this team (must be manager or admin)
+            if not (team.is_manager(request.user) or request.user.has_role('admin')):
+                return Response({
+                    'error': "You don't have permission to create projects for this team."
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Set created_by and default manager if not provided
+            manager = serializer.validated_data.get('manager', request.user)
+            project = serializer.save(created_by=request.user, manager=manager)
+            
+            # Return detailed project information
+            response_serializer = ProjectDetailSerializer(project)
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):

@@ -35,6 +35,10 @@ class UserRegistrationView(generics.CreateAPIView):
             400: OpenApiResponse(description="Invalid input data"),
         }
     )
+
+    # The post method here is used to handle the registration logic.
+    # It is used to handle the POST request.
+    
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -47,10 +51,20 @@ class UserRegistrationView(generics.CreateAPIView):
             refresh = RefreshToken.for_user(user)
             
             # Get profile information
-            profile_data = {}
+            profile_data = {} 
             if hasattr(user, 'profile'):
                 profile_serializer = UserProfileSerializer(user.profile)
                 profile_data = profile_serializer.data
+            else:
+                # Create a basic profile structure if user doesn't have a profile
+                profile_data = {
+                    'phone_number': None,
+                    'bio': None,
+                    'date_of_birth': None,
+                    'department': None,
+                    'employee_id': None,
+                    'timezone': 'UTC'
+                }
             
             return Response({
                 'message': 'User registered successfully',

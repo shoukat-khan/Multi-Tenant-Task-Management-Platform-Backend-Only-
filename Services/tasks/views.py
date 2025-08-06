@@ -1,13 +1,15 @@
-from rest_framework import generics, status, permissions
+from rest_framework import generics, status, permissions, filters
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from Services.users.permissions import IsManagerUser, IsAdminUser, IsOwnerOrManagerOrAdmin
 from Services.teams.models import Team
 from Services.projects.models import Project
 from .models import Task, TaskComment, TaskAttachment
+from .filters import TaskFilter
 from .serializers import (
     TaskSerializer, TaskDetailSerializer, TaskCreateSerializer,
     TaskStatusUpdateSerializer, TaskCommentSerializer, TaskCommentCreateSerializer,
@@ -19,29 +21,36 @@ class TaskListView(generics.ListCreateAPIView):
     """
     List all tasks or create a new task.
     Only managers and admins can create tasks.
+    Supports filtering by status, due date range, user, and search.
     """
     serializer_class = TaskSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = TaskFilter
+    search_fields = ['title', 'description', 'project__name', 'team__name']
+    ordering_fields = ['created_at', 'updated_at', 'due_date', 'priority', 'status']
+    ordering = ['-created_at']
     
     def get_queryset(self):
-        """Filter tasks based on user role and permissions."""
+        """Filter tasks based on user role and permissions with team restrictions."""
         user = self.request.user
         
         # Admin can see all tasks
         if user.has_role('admin'):
-            return Task.objects.all()
+            return Task.objects.select_related('project', 'team', 'assigned_to', 'created_by').all()
         
         # Manager can see tasks they manage and tasks of teams they manage
         if user.has_role('manager'):
-            return Task.objects.filter(
+            return Task.objects.select_related('project', 'team', 'assigned_to', 'created_by').filter(
                 Q(created_by=user) | Q(assigned_to=user) | 
                 Q(team__manager=user) | Q(project__manager=user) |
-                Q(team__members=user)
+                Q(team__members=user)  # Only team members can access tasks
             ).distinct()
         
-        # Employee can only see tasks they're assigned to or tasks of teams they're members of
-        return Task.objects.filter(
-            Q(assigned_to=user) | Q(created_by=user) | Q(team__members=user)
+        # Employee can only see tasks they're assigned to or created, but only if they're team members
+        return Task.objects.select_related('project', 'team', 'assigned_to', 'created_by').filter(
+            Q(assigned_to=user) | Q(created_by=user),
+            Q(team__members=user)  # Must be team member to access
         ).distinct()
     
     def get_serializer_class(self):
@@ -51,14 +60,30 @@ class TaskListView(generics.ListCreateAPIView):
         return TaskSerializer
     
     def get_permissions(self):
-        """Set permissions based on request method."""
+        """Set permissions based on request method with employee task assignment restriction."""
         if self.request.method == 'POST':
+            # Only managers and admins can create tasks
             return [IsManagerUser()]
         return [permissions.IsAuthenticated()]
     
+    def perform_create(self, serializer):
+        """
+        Override perform_create to ensure proper task creation with team validation.
+        """
+        user = self.request.user
+        project = serializer.validated_data.get('project')
+        
+        # Ensure the user can create tasks for this project
+        if not project.can_be_managed_by(user):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You don't have permission to create tasks for this project.")
+        
+        # Set team based on project
+        serializer.save(created_by=user, team=project.team)
+    
     @extend_schema(
         summary="List Tasks",
-        description="Get list of tasks based on user permissions",
+        description="Get list of tasks based on user permissions. Supports filtering by status, due date range, user, and search.",
         responses={200: TaskSerializer(many=True)}
     )
     def get(self, request, *args, **kwargs):
