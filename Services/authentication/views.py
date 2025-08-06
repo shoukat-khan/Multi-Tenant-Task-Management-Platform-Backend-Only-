@@ -37,7 +37,7 @@ class UserRegistrationView(generics.CreateAPIView):
     )
 
     # The post method here is used to handle the registration logic.
-    #it is used to handle the post request
+    # It is used to handle the POST request.
     
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
