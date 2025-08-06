@@ -36,7 +36,7 @@ class UserRegistrationView(generics.CreateAPIView):
         }
     )
 
-    #def post here is used to handle the registration logic
+    # The post method here is used to handle the registration logic.
     #it is used to handle the post request
     
     def post(self, request, *args, **kwargs):
