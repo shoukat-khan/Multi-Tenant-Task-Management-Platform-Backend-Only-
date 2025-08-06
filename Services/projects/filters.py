@@ -135,7 +135,7 @@ class ProjectFilter(django_filters.FilterSet):
                 end_date__lt=now,
                 status__in=['planning', 'active', 'on_hold']
             )
-        elif value is False:
+        elif not value:
             from django.utils import timezone
             now = timezone.now().date()
             return queryset.exclude(
