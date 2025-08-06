@@ -301,7 +301,7 @@ class TestTaskAssignment:
         response = self.client.post(self.task_url, data, format='json')
         
         print(f"Response status: {response.status_code}")
-        print(f"Response data: {response.data}")
+        
         
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data['title'] == 'Implement User Authentication'
