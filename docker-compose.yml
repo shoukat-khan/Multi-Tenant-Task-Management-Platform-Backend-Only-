@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    container_name: task_management_db
+    environment:
+      POSTGRES_DB: week_3
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "*sho0151615"
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - task_management_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Django Web Application
+  web:
+    image: shoukat991/multi-tenant-task-management:week5
+    container_name: task_management_web
+    env_file:
+      - .env.docker
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn --bind 0.0.0.0:8000 --workers 3 Services.wsgi:application"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - task_management_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  task_management_network:
+    driver: bridge

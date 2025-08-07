@@ -4,62 +4,11 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from Services.users.models import User, UserProfile, Role
-
-
-# Role utility functions for serializers
-def is_admin_role(user):
-    """Check if user has admin role."""
-    return user.has_role('admin')
-
-
-def is_manager_role(user):
-    """Check if user has manager role."""
-    return user.has_role('manager')
-
-
-def is_employee_role(user):
-    """Check if user has employee role."""
-    return user.has_role('employee')
-
-
-def get_role_hierarchy_level(user):
-    """Get the hierarchy level of the user's role."""
-    role_levels = {
-        'admin': 3,
-        'manager': 2,
-        'employee': 1
-    }
-    return role_levels.get(user.role, 0)
-
-
-def can_manage_user(current_user, target_user):
-    """Check if current user can manage the target user."""
-    if is_admin_role(current_user):
-        return True
-    
-    if is_manager_role(current_user):
-        # Managers can manage employees and other managers of lower or equal level
-        if is_employee_role(target_user):
-            return True
-        # Check if target user is managed by current user
-        if hasattr(target_user, 'profile') and target_user.profile.manager == current_user:
-            return True
-    
-    return current_user == target_user
-
-
-def get_user_role_display(user):
-    """Get the display name of the user's role with additional context."""
-    base_display = user.get_role_display()
-    
-    # Add additional context based on role
-    if is_admin_role(user):
-        return f"{base_display} (Full Access)"
-    elif is_manager_role(user):
-        managed_count = getattr(user, 'managed_employees', User.objects.none()).count()
-        return f"{base_display} ({managed_count} managed users)"
-    else:
-        return f"{base_display} (Standard Access)"
+from .utils import (
+    is_admin_role, is_manager_role, is_employee_role,
+    get_role_hierarchy_level, can_manage_user, get_user_role_display,
+    is_admin_role_data, is_manager_role_data, is_employee_role_data
+)
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -143,27 +92,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         UserProfile.objects.create(user=user)
         
         return user
-    
-    def is_admin_role(self, data):
-        """Check if the registration data is for an admin role."""
-        return data.get('role') == Role.ADMIN
-    
-    def is_manager_role(self, data):
-        """Check if the registration data is for a manager role."""
-        return data.get('role') == Role.MANAGER
-    
-    def is_employee_role(self, data):
-        """Check if the registration data is for an employee role."""
-        return data.get('role') == Role.EMPLOYEE
-    
-    def get_role_hierarchy_level(self, role):
-        """Get the hierarchy level of a role."""
-        role_levels = {
-            Role.ADMIN: 3,
-            Role.MANAGER: 2,
-            Role.EMPLOYEE: 1
-        }
-        return role_levels.get(role, 0)
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
