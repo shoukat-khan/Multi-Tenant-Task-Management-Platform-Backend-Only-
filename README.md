@@ -448,7 +448,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 For support and questions:
-- 📧 **Email**: shoukat.khan@example.com
+- 📧 **Email**: shoukat.khang71@gmail.com
 - 🐛 **Issues**: [GitHub Issues](https://github.com/shoukat-khan/Multi-Tenant-Task-Management-Platform-Backend-Only-/issues)
 - 📖 **Documentation**: [Project Wiki](https://github.com/shoukat-khan/Multi-Tenant-Task-Management-Platform-Backend-Only-/wiki)
 
