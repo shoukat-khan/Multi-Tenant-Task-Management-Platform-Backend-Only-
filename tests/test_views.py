@@ -334,14 +334,12 @@ class TestRoleBasedPermissions:
         assert self.employee.role == Role.EMPLOYEE
     
     def test_role_hierarchy(self):
-        """Test role hierarchy levels."""
-        from Services.authentication.serializers import UserRegistrationSerializer
+        """Test role hierarchy levels using utils module."""
+        from Services.authentication.utils import get_role_hierarchy_level
         
-        serializer = UserRegistrationSerializer()
-        
-        admin_level = serializer.get_role_hierarchy_level(Role.ADMIN)
-        manager_level = serializer.get_role_hierarchy_level(Role.MANAGER)
-        employee_level = serializer.get_role_hierarchy_level(Role.EMPLOYEE)
+        admin_level = get_role_hierarchy_level(Role.ADMIN)
+        manager_level = get_role_hierarchy_level(Role.MANAGER)
+        employee_level = get_role_hierarchy_level(Role.EMPLOYEE)
         
         assert admin_level > manager_level > employee_level
         assert admin_level == 3

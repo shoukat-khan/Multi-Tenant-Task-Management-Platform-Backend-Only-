@@ -171,5 +171,14 @@ Thumbs.db
 .env.local
 .env.production
 .env.staging
+.env.docker
 secrets.json
 config.json
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+.docker/
+
+# SSL certificates
+ssl/
