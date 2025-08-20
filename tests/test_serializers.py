@@ -96,27 +96,34 @@ class TestUserRegistrationSerializer:
         assert 'password' in serializer.errors
     
     def test_role_utility_functions(self):
-        """Test role utility functions in serializer."""
-        # Test is_admin_role function
-        admin_data = {'role': Role.ADMIN}
-        manager_data = {'role': Role.MANAGER}
-        employee_data = {'role': Role.EMPLOYEE}
+        """Test role utility functions from utils module."""
+        from Services.authentication.utils import is_admin_role_data, is_manager_role_data, is_employee_role_data
         
-        serializer = UserRegistrationSerializer()
+        # Test role utility functions with role data
+        assert is_admin_role_data(Role.ADMIN) is True
+        assert is_admin_role_data(Role.MANAGER) is False
+        assert is_admin_role_data(Role.EMPLOYEE) is False
         
-        assert serializer.is_admin_role(admin_data) is True
-        assert serializer.is_admin_role(manager_data) is False
-        assert serializer.is_admin_role(employee_data) is False
+        assert is_manager_role_data(Role.MANAGER) is True
+        assert is_manager_role_data(Role.ADMIN) is False
+        assert is_manager_role_data(Role.EMPLOYEE) is False
+        
+        assert is_employee_role_data(Role.EMPLOYEE) is True
+        assert is_employee_role_data(Role.ADMIN) is False
+        assert is_employee_role_data(Role.MANAGER) is False
     
     def test_role_hierarchy_levels(self):
-        """Test get_role_hierarchy_level function."""
-        serializer = UserRegistrationSerializer()
+        """Test get_role_hierarchy_level function from utils module."""
+        from Services.authentication.utils import get_role_hierarchy_level
         
-        admin_level = serializer.get_role_hierarchy_level(Role.ADMIN)
-        manager_level = serializer.get_role_hierarchy_level(Role.MANAGER)
-        employee_level = serializer.get_role_hierarchy_level(Role.EMPLOYEE)
+        admin_level = get_role_hierarchy_level(Role.ADMIN)
+        manager_level = get_role_hierarchy_level(Role.MANAGER)
+        employee_level = get_role_hierarchy_level(Role.EMPLOYEE)
         
         assert admin_level > manager_level > employee_level
+        assert admin_level == 3
+        assert manager_level == 2
+        assert employee_level == 1
     
     def test_admin_role_creation(self):
         """Test creating user with admin role."""
