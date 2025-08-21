@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, OpenApiResponse
-from Services.users.permissions import IsManagerUser, IsAdminUser, IsOwnerOrManagerOrAdmin
+from Services.users.permissions import IsManagerUser
 from Services.teams.models import Team
 from Services.projects.models import Project
 from .models import Task, TaskComment, TaskAttachment

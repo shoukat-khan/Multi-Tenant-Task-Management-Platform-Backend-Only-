@@ -73,9 +73,9 @@ class Project(models.Model):
         help_text="Project start date"
     )
     end_date = models.DateField(
-        null=True,
-        blank=True,
-        help_text="Project end date"
+        null=False,
+        blank=False,
+        help_text="Project end date (required)"
     )
     completed_date = models.DateField(
         null=True,

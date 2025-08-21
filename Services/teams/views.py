@@ -1,10 +1,9 @@
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema, OpenApiResponse
-from Services.users.permissions import IsManagerUser, IsAdminUser, IsOwnerOrManagerOrAdmin
+from Services.users.permissions import IsManagerUser, IsOwnerOrManagerOrAdmin
 from .models import Team, TeamMembership
 from .serializers import (
     TeamSerializer, TeamDetailSerializer, TeamCreateSerializer,
