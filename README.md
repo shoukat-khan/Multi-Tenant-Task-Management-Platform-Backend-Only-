@@ -1,11 +1,4 @@
 # 🚀 Multi-Tenant Task Management Platform
-
-[![Django](https://img.shields.io/badge/Django-4.2.23-green.svg)](https://www.djangoproject.com/)
-[![DRF](https://img.shields.io/badge/DRF-3.16.0-blue.svg)](https://www.django-rest-framework.org/)
-[![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
-[![Docker](https://img.shields.io/badge/Docker-Enabled-blue.svg)](https://www.docker.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
-
 A comprehensive **Multi-Tenant Task Management Platform** built with Django REST Framework, featuring secure authentication, role-based permissions, and complete CRUD operations for teams, projects, and tasks.
 
 ## 📋 Table of Contents
